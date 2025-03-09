@@ -1,2 +1,2 @@
 */app/migrations/*
-*/.env
+*.env
