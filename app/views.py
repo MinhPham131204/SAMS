@@ -30,7 +30,10 @@ def getData(request):
         'soilMoisture': soil_feeds[0].value,
         'tempThreshold': temp_threshold[0].value,
         'soilThreshold': soil_threshold[0].value,
-        'humidityHistory': [x.value for x in humidity_feeds[0:30]]
+        'humidityHistory': [x.value for x in humidity_feeds[0:30]],
+        'temperatureHistory': [x.value for x in temperature_feeds[0:30]],
+        'lightHistory': [x.value for x in light_feeds[0:30]],
+        'soilMoistureHistory': [x.value for x in soil_feeds[0:30]]
     }
     return JsonResponse(data)
 
