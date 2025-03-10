@@ -1,7 +1,22 @@
 from django.http import JsonResponse
 from Adafruit_IO import Client, MQTTClient
 from dotenv import load_dotenv
-import os
+import os, pytz
+from datetime import datetime
+
+def format_datetime(dt_string):
+    if dt_string.endswith('Z'):
+        dt_string = dt_string.replace('Z', '+00:00')
+        
+        # Parse the ISO datetime string with timezone info
+    dt = datetime.fromisoformat(dt_string)
+    
+    # Option 1: Convert to Vietnam timezone (UTC+7)
+    vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+    dt = dt.astimezone(vietnam_tz)
+
+    return dt.strftime("%Y/%m/%d %H:%M:%S")
+
 
 load_dotenv()
 
@@ -30,10 +45,10 @@ def getData(request):
         'soilMoisture': soil_feeds[0].value,
         'tempThreshold': temp_threshold[0].value,
         'soilThreshold': soil_threshold[0].value,
-        'humidityHistory': [x.value for x in humidity_feeds[0:30]],
-        'temperatureHistory': [x.value for x in temperature_feeds[0:30]],
-        'lightHistory': [x.value for x in light_feeds[0:30]],
-        'soilMoistureHistory': [x.value for x in soil_feeds[0:30]]
+        'humidityHistory': [(x.value, format_datetime(x[1])) for x in humidity_feeds[0:30]],
+        'temperatureHistory': [(x.value, format_datetime(x[1])) for x in temperature_feeds[0:30]],
+        'lightHistory': [(x.value, format_datetime(x[1])) for x in light_feeds[0:30]],
+        'soilMoistureHistory': [(x.value, format_datetime(x[1])) for x in soil_feeds[0:30]]
     }
     return JsonResponse(data)
 
