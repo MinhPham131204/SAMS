@@ -60,8 +60,8 @@ class Threshold(models.Model):
 
 class Schedule(models.Model):
     sensorID = models.OneToOneField(Sensor, on_delete=models.CASCADE, primary_key=True)
-    ventilatedTime = models.TimeField()
-    irrigatedTime = models.TimeField()
+    ventilatedTime = models.DateTimeField()
+    irrigatedTime = models.DateTimeField()
 
 class VentilateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
