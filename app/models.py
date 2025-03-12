@@ -64,7 +64,7 @@ class Schedule(models.Model):
     irrigatedTime = models.DateTimeField()
 
 class VentilateDaily(models.Model):
-    sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
     ventilatedTime = models.TimeField()
     
     class Meta:
@@ -73,7 +73,7 @@ class VentilateDaily(models.Model):
         ]
 
 class IrrigateDaily(models.Model):
-    sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
     irrigatedTime = models.TimeField() 
     
     class Meta:

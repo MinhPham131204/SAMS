@@ -1,8 +1,11 @@
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from Adafruit_IO import Client, MQTTClient
 from dotenv import load_dotenv
-import os, pytz
+import os, pytz, json
 from datetime import datetime
+from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily
 
 def format_datetime(dt_string):
     if dt_string.endswith('Z'):
@@ -61,3 +64,104 @@ def manualVentilate(request):
     status = aio.data('bbc-manual-temperature')
     client.publish('bbc-manual-temperature', 1 - int(status[0].value))
     return JsonResponse({'status': 1 - int(status[0].value)})
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def login(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+
+    user = User.objects.filter(email=body['email'], password=body['password']).values()
+    return JsonResponse({'status': 'success'}) if user else JsonResponse({'status': 'failed'})
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def signup(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    checkEmail = User.objects.filter(email=body['email']).values()
+    checkPhone = User.objects.filter(phone=body['phone']).values()
+    if checkEmail:
+        return JsonResponse({"message":"Email này đã đăng kí"})
+    if checkPhone:
+        return JsonResponse({"message":"Số điện thoại này đã đăng kí"})
+    user = User(username=body['username'], password=body['password'], email=body['email'], phone=body['phone'])
+    user.save()
+    return JsonResponse({'status': 'success'})
+
+def getThreshold(request, id):
+    threshold = Threshold.objects.filter(sensorID=id).values()
+    return JsonResponse(threshold[0])
+
+@csrf_exempt
+@require_http_methods(['PUT'])
+def config(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    if Threshold.objects.filter(sensorID=body["sensorID"]).values():
+        Threshold.objects.filter(sensorID=body["sensorID"]).update(
+            lowerTemp=body["lowerTemp"],
+            upperTemp=body["upperTemp"],
+            lowerHumidity=body["lowerHumidity"],
+            upperHumidity=body["upperHumidity"],
+            lowerLight=body["lowerLight"],
+            upperLight=body["upperLight"],
+            lowerSoil=body["lowerSoil"],
+            upperSoil=body["upperSoil"]
+        )
+        return JsonResponse({'status': 'success'})
+    else: 
+        return JsonResponse({"message": "Không tìm thấy sensor"})
+
+def getSchedule(request, id):
+    irrigateDaily = IrrigateDaily.objects.filter(id=id).values()
+    ventilateDaily = VentilateDaily.objects.filter(sensorID=id).values()
+    return JsonResponse({'irrigateDaily': list(irrigateDaily), 'ventilateDaily': list(ventilateDaily)})
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def irrigateSchedule(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    if Schedule.objects.filter(sensorID=body["sensorID"]).values():
+        Schedule.objects.filter(sensorID=body["sensorID"]).update(
+            irrigateTime=body["irrigateTime"],
+        )
+        return JsonResponse({'status': 'success'})
+    else:
+        schedule = Schedule(sensorID=body['sensorID'], irrigateTime=body['irrigateTime'])
+        schedule.save()
+        return JsonResponse({'status': 'success'})
+    
+@csrf_exempt
+@require_http_methods(['POST'])
+def ventilateSchedule(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    if Schedule.objects.filter(sensorID=body["sensorID"]).values():
+        Schedule.objects.filter(sensorID=body["sensorID"]).update(
+            ventilateTime=body["ventilateTime"],
+        )
+        return JsonResponse({'status': 'success'})
+    else:
+        schedule = Schedule(sensorID=body['sensorID'], ventilateTime=body['ventilateTime'])
+        schedule.save()
+        return JsonResponse({'status': 'success'})
+    
+@csrf_exempt
+@require_http_methods(['POST'])
+def irrigateDaily(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    schedule = Schedule(sensorID=body['sensorID'], irrigateTime=body['irrigateTime'])
+    schedule.save()
+    return JsonResponse({'status': 'success'})
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def ventilateDaily(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    schedule = Schedule(sensorID=body['sensorID'], ventilateTime=body['ventilateTime'])
+    schedule.save()
+    return JsonResponse({'status': 'success'})

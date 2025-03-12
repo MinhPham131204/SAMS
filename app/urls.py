@@ -5,4 +5,9 @@ urlpatterns = [
     path('getData/', views.getData, name='getData'),
     path('manualWatering/', views.manualWatering, name='manualWatering'),
     path('manualVentilate/', views.manualVentilate, name='manualVentilate'),
+    path('login/', views.login, name='login'),
+    path('signup/', views.signup, name='signup'),
+    path('threshold/<str:id>/', views.getThreshold, name='threshold'),
+    path('configThreshold/', views.config, name='configThreshold'),
+    path('schedule/<str:id>/', views.getSchedule, name='schedule'),
 ]
