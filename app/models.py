@@ -60,23 +60,13 @@ class Threshold(models.Model):
 
 class Schedule(models.Model):
     sensorID = models.OneToOneField(Sensor, on_delete=models.CASCADE, primary_key=True)
-    ventilatedTime = models.DateTimeField()
-    irrigatedTime = models.DateTimeField()
+    ventilatedTime = models.TimeField()
+    irrigatedTime = models.TimeField()
 
 class VentilateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
     ventilatedTime = models.TimeField()
-    
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['sensorID', 'ventilatedTime'], name='primary_key_ventilate_daily')
-        ]
 
 class IrrigateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
     irrigatedTime = models.TimeField() 
-    
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['sensorID', 'irrigatedTime'], name='primary_key_irrigate_daily')
-        ]

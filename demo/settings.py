@@ -87,6 +87,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_ADMIN_PASSWORD'),
         'HOST': '103.75.183.157',
         'PORT': '3306',
+        'OPTIONS': {'init_command': 'SET default_storage_engine=INNODB'},
     }
 }
 

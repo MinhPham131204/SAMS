@@ -10,4 +10,8 @@ urlpatterns = [
     path('threshold/<str:id>/', views.getThreshold, name='threshold'),
     path('configThreshold/', views.config, name='configThreshold'),
     path('schedule/<str:id>/', views.getSchedule, name='schedule'),
+    path('irrigate-schedule/', views.irrigateSchedule, name='irrigateSchedule'),
+    path('ventilate-schedule/', views.ventilateSchedule, name='ventilateSchedule'),
+    path('irrigateDaily/', views.irrigateDaily, name='irrigateDaily'),
+    path('ventilateDaily/', views.ventilateDaily, name='ventilateDaily'),
 ]

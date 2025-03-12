@@ -1,11 +1,12 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
 from Adafruit_IO import Client, MQTTClient
 from dotenv import load_dotenv
 import os, pytz, json
 from datetime import datetime
-from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily
+from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor
 
 def format_datetime(dt_string):
     if dt_string.endswith('Z'):
@@ -114,7 +115,7 @@ def config(request):
         return JsonResponse({"message": "Không tìm thấy sensor"})
 
 def getSchedule(request, id):
-    irrigateDaily = IrrigateDaily.objects.filter(id=id).values()
+    irrigateDaily = IrrigateDaily.objects.filter(sensorID=id).values()
     ventilateDaily = VentilateDaily.objects.filter(sensorID=id).values()
     return JsonResponse({'irrigateDaily': list(irrigateDaily), 'ventilateDaily': list(ventilateDaily)})
 
@@ -125,13 +126,17 @@ def irrigateSchedule(request):
     body = json.loads(body_unicode)
     if Schedule.objects.filter(sensorID=body["sensorID"]).values():
         Schedule.objects.filter(sensorID=body["sensorID"]).update(
-            irrigateTime=body["irrigateTime"],
+            irrigatedTime=body["irrigatedTime"],
         )
         return JsonResponse({'status': 'success'})
     else:
-        schedule = Schedule(sensorID=body['sensorID'], irrigateTime=body['irrigateTime'])
-        schedule.save()
-        return JsonResponse({'status': 'success'})
+        sensor = Sensor.objects.filter(id=body["sensorID"]).first()
+        if sensor:
+            schedule = Schedule(sensorID=sensor, irrigatedTime=body['irrigatedTime'], ventilatedTime="00:00:00")
+            schedule.save()
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({"message": "Không tìm thấy sensor"})
     
 @csrf_exempt
 @require_http_methods(['POST'])
@@ -140,28 +145,40 @@ def ventilateSchedule(request):
     body = json.loads(body_unicode)
     if Schedule.objects.filter(sensorID=body["sensorID"]).values():
         Schedule.objects.filter(sensorID=body["sensorID"]).update(
-            ventilateTime=body["ventilateTime"],
+            ventilatedTime=body["ventilatedTime"],
         )
         return JsonResponse({'status': 'success'})
     else:
-        schedule = Schedule(sensorID=body['sensorID'], ventilateTime=body['ventilateTime'])
-        schedule.save()
-        return JsonResponse({'status': 'success'})
+        sensor = Sensor.objects.filter(id=body["sensorID"]).first()
+        if sensor:
+            schedule = Schedule(sensorID=sensor, ventilatedTime=body['ventilatedTime'], irrigatedTime="00:00:00")
+            schedule.save()
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({"message": "Không tìm thấy sensor"})
     
 @csrf_exempt
 @require_http_methods(['POST'])
 def irrigateDaily(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    schedule = Schedule(sensorID=body['sensorID'], irrigateTime=body['irrigateTime'])
-    schedule.save()
-    return JsonResponse({'status': 'success'})
+    sensor = Sensor.objects.filter(id=body["sensorID"]).first()
+    if sensor:
+        schedule = IrrigateDaily(sensorID=sensor, irrigatedTime=body['irrigatedTime'])
+        schedule.save()
+        return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({"message": "Không tìm thấy sensor"})
 
 @csrf_exempt
 @require_http_methods(['POST'])
 def ventilateDaily(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    schedule = Schedule(sensorID=body['sensorID'], ventilateTime=body['ventilateTime'])
-    schedule.save()
-    return JsonResponse({'status': 'success'})
+    sensor = Sensor.objects.filter(id=body["sensorID"]).first()
+    if sensor:
+        schedule = VentilateDaily(sensorID=sensor, ventilatedTime=body['ventilatedTime'])
+        schedule.save()
+        return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({"message": "Không tìm thấy sensor"})
