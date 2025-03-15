@@ -4,18 +4,16 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 from Adafruit_IO import Client, MQTTClient
 from dotenv import load_dotenv
-import os, pytz, json
+import os, pytz, json, requests
 from datetime import datetime
 from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor
 
 def format_datetime(dt_string):
     if dt_string.endswith('Z'):
         dt_string = dt_string.replace('Z', '+00:00')
-        
-        # Parse the ISO datetime string with timezone info
+
     dt = datetime.fromisoformat(dt_string)
-    
-    # Option 1: Convert to Vietnam timezone (UTC+7)
+
     vietnam_tz = pytz.timezone('Asia/Ho_Chi_Minh')
     dt = dt.astimezone(vietnam_tz)
 
@@ -39,16 +37,12 @@ def getData(request):
     light_feeds = aio.data('bbc-light')
     humidity_feeds = aio.data('bbc-humidity')
     soil_feeds = aio.data('bbc-soil-moisture')
-    temp_threshold = aio.data('bbc-temperature-threshold')
-    soil_threshold = aio.data('bbc-soil-moisture-threshold')
     
     data = {
         'temperature': temperature_feeds[0].value,
         'light': light_feeds[0].value,
         'humidity': humidity_feeds[0].value,
         'soilMoisture': soil_feeds[0].value,
-        'tempThreshold': temp_threshold[0].value,
-        'soilThreshold': soil_threshold[0].value,
         'humidityHistory': [(x.value, format_datetime(x[1])) for x in humidity_feeds[0:30]],
         'temperatureHistory': [(x.value, format_datetime(x[1])) for x in temperature_feeds[0:30]],
         'lightHistory': [(x.value, format_datetime(x[1])) for x in light_feeds[0:30]],
@@ -56,15 +50,21 @@ def getData(request):
     }
     return JsonResponse(data)
 
-def manualWatering(request):
-    status = aio.data('bbc-manual-watering')
-    client.publish('bbc-manual-watering', 1 - int(status[0].value))
-    return JsonResponse({'status': 1 - int(status[0].value)})
+def turnOnWatering(request):
+    client.publish('bbc-manual-watering', 1)
+    return JsonResponse({'status': 1})
 
-def manualVentilate(request):
-    status = aio.data('bbc-manual-temperature')
-    client.publish('bbc-manual-temperature', 1 - int(status[0].value))
-    return JsonResponse({'status': 1 - int(status[0].value)})
+def turnOffWatering(request):
+    client.publish('bbc-manual-watering', 0)   
+    return JsonResponse({'status': 0})
+
+def turnOnVentilate(request):
+    client.publish('bbc-manual-temperature', 1)
+    return JsonResponse({'status': 1})
+
+def turnOffVentilate(request):
+    client.publish('bbc-manual-temperature', 0)    
+    return JsonResponse({'status': 0})
 
 @csrf_exempt
 @require_http_methods(['POST'])
@@ -180,5 +180,54 @@ def ventilateDaily(request):
         schedule = VentilateDaily(sensorID=sensor, ventilatedTime=body['ventilatedTime'])
         schedule.save()
         return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({"message": "Không tìm thấy sensor"})
+    
+@csrf_exempt
+@require_http_methods(['POST'])
+def smartIrrigate(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    humi = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerHumidity', 'upperHumidity')
+    if humi:
+        # humidity < lower threshold of humidity
+        if body["humidity"] < humi[0][0]:
+            client.publish('bbc-manual-watering', 1)
+            return JsonResponse({'status': 'Đang tưới nước'})
+        
+        # humidity > upper threshold of humidity
+        elif body["humidity"] > humi[0][1]: 
+            client.publish('bbc-manual-temperature', 1)
+            return JsonResponse({'status': 'Đang thông gió'})
+        
+        # humidity in range
+        else:
+            requests.get('/turnOffWatering')
+            return JsonResponse({'status': 'success'})
+    else:
+        return JsonResponse({"message": "Không tìm thấy sensor"})
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def smartVentilate(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    temp = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerTemp', 'upperTemp')
+    if temp:
+        # temperature < lower threshold of temperature
+        if body["temperature"] < temp[0][0]:
+            if (aio.data('bbc-light''bbc-manual-temperature'))[0].value == 1:
+                client.publish('bbc-manual-temperature', 0)
+            return JsonResponse({'status': 'success'})
+        
+        # temperature > upper threshold of temperature
+        elif body["temperature"] > temp[0][1]:
+            client.publish('bbc-manual-temperature', 1)
+            return JsonResponse({'status': 'success'})
+        
+        # temperature in range
+        else:
+            requests.get('/turnOffVentilate')
+            return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})
