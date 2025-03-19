@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q, F
 from django.db.models.constraints import CheckConstraint
+from django.utils import timezone as django_timezone  # Add this import
 
 
 # Create your models here.
@@ -70,3 +71,10 @@ class VentilateDaily(models.Model):
 class IrrigateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
     irrigatedTime = models.TimeField() 
+
+class Enviroment_log(models.Model):
+    timestamp = models.DateTimeField(primary_key=True, default=django_timezone.now)
+    temperature = models.FloatField()
+    humidity = models.FloatField()
+    light = models.FloatField()
+    soil = models.FloatField()

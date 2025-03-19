@@ -18,4 +18,5 @@ urlpatterns = [
     path('ventilateDaily/', views.ventilateDaily, name='ventilateDaily'),
     path('smartIrrigate/', views.smartIrrigate, name='smartIrrigate'),
     path('smartVentilate/', views.smartVentilate, name='smartVentilate'),
+    path('yolobit_api', views.yolobit_api, name='yolobit_api'),
 ]

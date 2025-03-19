@@ -1,4 +1,5 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from functools import wraps
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
@@ -6,7 +7,9 @@ from Adafruit_IO import Client, MQTTClient
 from dotenv import load_dotenv
 import os, pytz, json, requests
 from datetime import datetime
-from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor
+from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor, Enviroment_log
+from django.utils import timezone
+from datetime import timedelta
 
 def format_datetime(dt_string):
     if dt_string.endswith('Z'):
@@ -31,24 +34,97 @@ client.loop_background()
 
 aio = Client(AIO_USERNAME, AIO_KEY)
 
+def allow_cors(view_func):
+    @wraps(view_func)
+    def wrapped_view(request, *args, **kwargs):
+        response = view_func(request, *args, **kwargs)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Origin, Content-Type, Authorization"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
 
+    return wrapped_view
+
+@allow_cors
 def getData(request):
-    temperature_feeds = aio.data('bbc-temperature')
-    light_feeds = aio.data('bbc-light')
-    humidity_feeds = aio.data('bbc-humidity')
-    soil_feeds = aio.data('bbc-soil-moisture')
-    
-    data = {
-        'temperature': temperature_feeds[0].value,
-        'light': light_feeds[0].value,
-        'humidity': humidity_feeds[0].value,
-        'soilMoisture': soil_feeds[0].value,
-        'humidityHistory': [(x.value, format_datetime(x[1])) for x in humidity_feeds[0:30]],
-        'temperatureHistory': [(x.value, format_datetime(x[1])) for x in temperature_feeds[0:30]],
-        'lightHistory': [(x.value, format_datetime(x[1])) for x in light_feeds[0:30]],
-        'soilMoistureHistory': [(x.value, format_datetime(x[1])) for x in soil_feeds[0:30]]
-    }
-    return JsonResponse(data)
+    try:
+        # Lấy tham số khoảng thời gian từ request
+        range_minute = int(request.GET.get('range_minute', 60))  # Mặc định 60 phút nếu không có
+        
+        # Tính toán thời gian bắt đầu dựa trên range_minute
+        time_threshold = timezone.now() - timedelta(minutes=range_minute)
+        
+        # Truy vấn dữ liệu sử dụng Django ORM
+        logs = Enviroment_log.objects.filter(timestamp__gte=time_threshold).order_by('-timestamp')
+        
+        # Chuyển đổi queryset thành danh sách các dictionaries
+        data = []
+        for log in logs:
+            log_dict = model_to_dict(log)
+            # Định dạng timestamp để hiển thị dễ đọc
+            log_dict['timestamp'] = format_datetime(log_dict['timestamp'].isoformat())
+            data.append(log_dict)
+            
+        return JsonResponse({
+            "success": True,
+            "data": data,
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        })
+
+@csrf_exempt
+def yolobit_api(request):
+    # Validate Method
+    if request.method != "POST":
+        return HttpResponse("", status=404)
+
+    # Parse JSON
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    try:
+        # Extract data
+        temperature = float(data.get("temp"))
+        humidity = float(data.get("hum"))
+        light = float(data.get("lig"))
+        soil = float(data.get("soil"))
+        
+        # Lưu dữ liệu sử dụng Django ORM
+        log_entry = Enviroment_log(
+            temperature=temperature,
+            humidity=humidity,
+            light=light,
+            soil=soil,
+            timestamp=timezone.now()
+        )
+        log_entry.save()
+        
+        # Lấy trạng thái thiết bị (fan và pump)
+        # Giả sử ta có một model DeviceState hay đang sử dụng Adafruit IO
+        pump_status = aio.data('bbc-manual-watering')[0].value 
+        fan_status = aio.data('bbc-manual-temperature')[0].value
+        
+        # Trả về kết quả
+        return JsonResponse({
+            "success": True,
+            "devices": {
+                "pump": int(pump_status),
+                "fan": int(fan_status)
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
 
 def turnOnWatering(request):
     client.publish('bbc-manual-watering', 1)
