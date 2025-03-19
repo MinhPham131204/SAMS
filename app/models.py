@@ -77,13 +77,9 @@ class Enviroment_log(models.Model):
     temperature = models.FloatField()
     humidity = models.FloatField()
     light = models.FloatField()
-<<<<<<< HEAD
     soil = models.FloatField()
 
 class Device_state(models.Model):
     device_name = models.CharField(max_length=50, unique=True, db_collation='utf8mb4_unicode_ci')
     state = models.BooleanField()
     manualMode = models.BooleanField(default=True)
-=======
-    soil = models.FloatField()
->>>>>>> 6a2fb59 (new-v1-commit)
