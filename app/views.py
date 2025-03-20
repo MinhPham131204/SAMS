@@ -260,7 +260,7 @@ def ventilateDaily(request):
     
 @csrf_exempt
 @require_http_methods(['POST'])
-def smartIrrigate(request):
+def handleHumidity(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     humi = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerHumidity', 'upperHumidity')
@@ -268,41 +268,59 @@ def smartIrrigate(request):
         # humidity < lower threshold of humidity
         if body["humidity"] < humi[0][0]:
             client.publish('bbc-manual-watering', 1)
+            Device_state.objects.filter(device_name="water_pump").update(state=1)
             return JsonResponse({'status': 'Đang tưới nước'})
         
         # humidity > upper threshold of humidity
         elif body["humidity"] > humi[0][1]: 
             client.publish('bbc-manual-temperature', 1)
+            Device_state.objects.filter(device_name="mini_fan").update(state=1)
             return JsonResponse({'status': 'Đang thông gió'})
         
         # humidity in range
         else:
-            requests.get('/turnOffWatering')
+            if (Device_state.objects.filter(device_name="water_pump").values())[0]['state'] == 1:
+                requests.get('/turnOffWatering')
+                Device_state.objects.filter(device_name="water_pump").update(state=1) 
+            elif (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
+                requests.get('/turnOffVentilate')
+                Device_state.objects.filter(device_name="mini_fan").update(state=1)   
+
             return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})
 
 @csrf_exempt
 @require_http_methods(['POST'])
-def smartVentilate(request):
+def handleTemperature(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     temp = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerTemp', 'upperTemp')
     if temp:
         # temperature < lower threshold of temperature
         if body["temperature"] < temp[0][0]:
-            if (aio.data('bbc-light''bbc-manual-temperature'))[0].value == 1:
+            if (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
                 client.publish('bbc-manual-temperature', 0)
-            return JsonResponse({'status': 'success'})
+                Device_state.objects.filter(device_name="mini_fan").update(state=1)
+            return JsonResponse({'status': 'Đang sưởi ấm'})
         
         # temperature > upper threshold of temperature
         elif body["temperature"] > temp[0][1]:
             client.publish('bbc-manual-temperature', 1)
+            Device_state.objects.filter(device_name="mini_fan").update(state=1)
+
+            client.publish('bbc-manual-watering', 0)
+            Device_state.objects.filter(device_name="water_pump").update(state=1)
             return JsonResponse({'status': 'success'})
         
         # temperature in range
         else:
-            requests.get('/turnOffVentilate')
+            if (Device_state.objects.filter(device_name="water_pump").values())[0]['state'] == 1:
+                requests.get('/turnOffWatering')
+                Device_state.objects.filter(device_name="water_pump").update(state=1) 
+            elif (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
+                requests.get('/turnOffVentilate')
+                Device_state.objects.filter(device_name="mini_fan").update(state=1)  
             return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})

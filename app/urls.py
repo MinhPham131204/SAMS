@@ -16,7 +16,7 @@ urlpatterns = [
     path('ventilate-schedule/', views.ventilateSchedule, name='ventilateSchedule'),
     path('irrigateDaily/', views.irrigateDaily, name='irrigateDaily'),
     path('ventilateDaily/', views.ventilateDaily, name='ventilateDaily'),
-    path('smartIrrigate/', views.smartIrrigate, name='smartIrrigate'),
-    path('smartVentilate/', views.smartVentilate, name='smartVentilate'),
+    path('handleHumidity/', views.handleHumidity, name='handleHumidity'),
+    path('handleTemperature/', views.handleTemperature, name='handleTemperature'),
     path('yolobit_api', views.yolobit_api, name='yolobit_api'),
 ]
