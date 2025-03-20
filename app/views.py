@@ -269,13 +269,13 @@ def handleHumidity(request):
         if body["humidity"] < humi[0][0]:
             client.publish('bbc-manual-watering', 1)
             Device_state.objects.filter(device_name="water_pump").update(state=1)
-            return JsonResponse({'status': 'Đang tưới nước'})
+            return JsonResponse({'status': 'Độ ẩm thấp hơn mức cho phép. Đang tưới nước'})
         
         # humidity > upper threshold of humidity
         elif body["humidity"] > humi[0][1]: 
             client.publish('bbc-manual-temperature', 1)
             Device_state.objects.filter(device_name="mini_fan").update(state=1)
-            return JsonResponse({'status': 'Đang thông gió'})
+            return JsonResponse({'status': 'Độ ẩm cao hơn mức cho phép. Đang thông gió'})
         
         # humidity in range
         else:
@@ -286,7 +286,7 @@ def handleHumidity(request):
                 requests.get('/turnOffVentilate')
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)   
 
-            return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'Độ ẩm ở mức cho phép'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})
 
@@ -302,7 +302,7 @@ def handleTemperature(request):
             if (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
                 client.publish('bbc-manual-temperature', 0)
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)
-            return JsonResponse({'status': 'Đang sưởi ấm'})
+            return JsonResponse({'status': 'Nhiệt độ thấp hơn mức cho phép. Đã tắt quạt'})
         
         # temperature > upper threshold of temperature
         elif body["temperature"] > temp[0][1]:
@@ -311,7 +311,7 @@ def handleTemperature(request):
 
             client.publish('bbc-manual-watering', 0)
             Device_state.objects.filter(device_name="water_pump").update(state=1)
-            return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'Nhiệt độ cao hơn mức cho phép. Đang thông gió và tưới nước'})
         
         # temperature in range
         else:
@@ -321,6 +321,6 @@ def handleTemperature(request):
             elif (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
                 requests.get('/turnOffVentilate')
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)  
-            return JsonResponse({'status': 'success'})
+            return JsonResponse({'status': 'Nhiệt độ ở mức cho phép'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})
