@@ -78,3 +78,7 @@ class Enviroment_log(models.Model):
     humidity = models.FloatField()
     light = models.FloatField()
     soil = models.FloatField()
+
+class Device_state(models.Model):
+    device_name = models.CharField(max_length=50, unique=True, db_collation='utf8mb4_unicode_ci')
+    state = models.BooleanField()

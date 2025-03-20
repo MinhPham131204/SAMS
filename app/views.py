@@ -7,7 +7,7 @@ from Adafruit_IO import Client, MQTTClient
 from dotenv import load_dotenv
 import os, pytz, json, requests
 from datetime import datetime
-from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor, Enviroment_log
+from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor, Enviroment_log, Device_state
 from django.utils import timezone
 from datetime import timedelta
 
@@ -108,15 +108,14 @@ def yolobit_api(request):
         
         # Lấy trạng thái thiết bị (fan và pump)
         # Giả sử ta có một model DeviceState hay đang sử dụng Adafruit IO
-        pump_status = aio.data('bbc-manual-watering')[0].value 
-        fan_status = aio.data('bbc-manual-temperature')[0].value
+        device_status = Device_state.objects.all()
         
         # Trả về kết quả
         return JsonResponse({
             "success": True,
             "devices": {
-                "pump": int(pump_status),
-                "fan": int(fan_status)
+                "pump": int(device_status[0].state),
+                "fan": int(device_status[1].state)
             }
         })
         
