@@ -1,2 +1,5 @@
 */app/migrations/*
 *.env
+/app/__pycache__
+/demo/__pycache__
+/app/migrations/__pycache__
