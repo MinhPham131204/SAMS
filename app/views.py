@@ -106,17 +106,12 @@ def yolobit_api(request):
         )
         log_entry.save()
         
-        # Lấy trạng thái thiết bị (fan và pump)
-        # Giả sử ta có một model DeviceState hay đang sử dụng Adafruit IO
-        device_status = Device_state.objects.all()
+        device_status = list(Device_state.objects.values())
         
         # Trả về kết quả
         return JsonResponse({
             "success": True,
-            "devices": {
-                "pump": int(device_status[0].state),
-                "fan": int(device_status[1].state)
-            }
+            "data": device_status
         })
         
     except Exception as e:
