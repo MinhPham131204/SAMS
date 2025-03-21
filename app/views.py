@@ -160,9 +160,86 @@ def signup(request):
     user.save()
     return JsonResponse({'status': 'success'})
 
-def getThreshold(request, id):
-    threshold = Threshold.objects.filter(sensorID=id).values()
-    return JsonResponse(threshold[0])
+def getThreshold(request):
+    try:
+        # Lấy dữ liệu threshold
+        threshold = Threshold.objects.filter(sensorID=1).first()
+        
+        if not threshold:
+            return JsonResponse({
+                "success": False,
+                "error": "Không tìm thấy threshold cho sensor này"
+            }, status=404)
+        
+        # Lấy trạng thái thiết bị
+        water_pump = Device_state.objects.filter(device_name="water_pump").first()
+        mini_fan = Device_state.objects.filter(device_name="mini_fan").first()
+        
+        # Nếu không tìm thấy device states
+        if not water_pump or not mini_fan:
+            return JsonResponse({
+                "success": False,
+                "error": "Không tìm thấy trạng thái thiết bị"
+            }, status=404)
+        
+        # Xây dựng cấu trúc phản hồi
+        response_data = {
+            "success": True,
+            "data": {
+                "irrigation": {
+                    "mode": 0 if water_pump.manualMode else 1,  # 0 là thủ công, 1 là tự động
+                    "device_state": water_pump.state,  # state 0 là đang tắt, state 1 là đang bật
+                    "auto_threshold": {
+                        "temp": {
+                            "min": threshold.lowerTemp,
+                            "max": threshold.upperTemp
+                        },
+                        "hum": {
+                            "min": threshold.lowerHumidity,
+                            "max": threshold.upperHumidity
+                        },
+                        "lig": {
+                            "min": threshold.lowerLight,
+                            "max": threshold.upperLight
+                        },
+                        "soil": {
+                            "min": threshold.lowerSoil,
+                            "max": threshold.upperSoil
+                        }
+                    }
+                },
+                "ventilation": {
+                    "mode": 0 if mini_fan.manualMode else 1,  # 0 là thủ công, 1 là tự động
+                    "device_state": mini_fan.state,  # state 0 là đang tắt, state 1 là đang bật
+                    "auto_threshold": {
+                        "temp": {
+                            "min": threshold.lowerTemp,
+                            "max": threshold.upperTemp
+                        },
+                        "hum": {
+                            "min": threshold.lowerHumidity,
+                            "max": threshold.upperHumidity
+                        },
+                        "lig": {
+                            "min": threshold.lowerLight,
+                            "max": threshold.upperLight
+                        },
+                        "soil": {
+                            "min": threshold.lowerSoil,
+                            "max": threshold.upperSoil
+                        }
+                    }
+                }
+            }
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
 
 @csrf_exempt
 @require_http_methods(['PUT'])
@@ -171,17 +248,17 @@ def config(request):
     body = json.loads(body_unicode)
     if Threshold.objects.filter(sensorID=body["sensorID"]).values():
         Threshold.objects.filter(sensorID=body["sensorID"]).update(
-            lowerTemp=body["lowerTemp"],
-            upperTemp=body["upperTemp"],
-            lowerHumidity=body["lowerHumidity"],
-            upperHumidity=body["upperHumidity"],
-            lowerLight=body["lowerLight"],
-            upperLight=body["upperLight"],
-            lowerSoil=body["lowerSoil"],
-            upperSoil=body["upperSoil"]
+            lowerTemp=body["temp"]["min"],
+            upperTemp=body["temp"]["max"],
+            lowerHumidity=body["hum"]["min"],
+            upperHumidity=body["hum"]["max"],
+            lowerLight=body["lig"]["min"],
+            upperLight=body["lig"]["max"],
+            lowerSoil=body["soil"]["min"],
+            upperSoil=body["soil"]["max"]
         )
         return JsonResponse({
-            'status': 'success',
+            'success': True,
             'data': body
         })
     else: 
