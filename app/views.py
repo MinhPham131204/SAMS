@@ -324,7 +324,7 @@ def handleTemperature(request):
         return JsonResponse({"message": "Không tìm thấy sensor"})
     
 @csrf_exempt
-@require_http_methods(['POST'])
+@require_http_methods(['PUT'])
 def updateMode(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
@@ -347,7 +347,7 @@ def updateMode(request):
         })
     
 @csrf_exempt
-@require_http_methods(['POST'])
+@require_http_methods(['PUT'])
 def updateState(request):
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
