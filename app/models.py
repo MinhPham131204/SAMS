@@ -82,3 +82,4 @@ class Enviroment_log(models.Model):
 class Device_state(models.Model):
     device_name = models.CharField(max_length=50, unique=True, db_collation='utf8mb4_unicode_ci')
     state = models.BooleanField()
+    manualMode = models.BooleanField(default=True)

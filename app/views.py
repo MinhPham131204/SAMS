@@ -180,7 +180,10 @@ def config(request):
             lowerSoil=body["lowerSoil"],
             upperSoil=body["upperSoil"]
         )
-        return JsonResponse({'status': 'success'})
+        return JsonResponse({
+            'status': 'success',
+            'data': body
+        })
     else: 
         return JsonResponse({"message": "Không tìm thấy sensor"})
 
@@ -319,3 +322,63 @@ def handleTemperature(request):
             return JsonResponse({'status': 'Nhiệt độ ở mức cho phép'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})
+    
+@csrf_exempt
+@require_http_methods(['POST'])
+def updateMode(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+    if body["type"] == "irrigation":
+        Device_state.objects.filter(device_name="water_pump").update(manualMode=body["mode"])
+        return JsonResponse({
+            "success": True,
+            'data': body["mode"]
+        })
+    elif body["mode"] == "ventilation":
+        Device_state.objects.filter(device_name="mini_fan").update(manualMode=body["mode"])
+        return JsonResponse({
+            "success": True,
+            'data': body["mode"]
+        })
+    else:
+        return JsonResponse({
+            "success": False,
+            "error": "Không tìm thấy chế độ"
+        })
+    
+@csrf_exempt
+@require_http_methods(['POST'])
+def updateState(request):
+    body_unicode = request.body.decode('utf-8')
+    body = json.loads(body_unicode)
+
+    if body["type"] == "irrigation":
+        if not Device_state.objects.filter(device_name="water_pump").first().manualMode: 
+            return JsonResponse({
+                "success": False,
+                "error": "Bạn đang ở chế độ tự động, không thể thực hiện hành động này."
+            })
+        
+        Device_state.objects.filter(device_name="water_pump").update(state=body["state"])
+        return JsonResponse({
+            "success": True,
+            'data': body["state"]
+        })
+    
+    elif body["type"] == "ventilation":
+        if not Device_state.objects.filter(device_name="mini_fan").first().manualMode: 
+            return JsonResponse({
+                "success": False,
+                "error": "Bạn đang ở chế độ tự động, không thể thực hiện hành động này."
+            })
+        
+        Device_state.objects.filter(device_name="mini_fan").update(state=body["state"])
+        return JsonResponse({
+            "success": True,
+            'data': body["state"]
+        })
+    else:
+        return JsonResponse({
+            "success": False,
+            "error": "Không tìm thấy chế độ"
+        })

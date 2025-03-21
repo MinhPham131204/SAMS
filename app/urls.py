@@ -19,4 +19,6 @@ urlpatterns = [
     path('handleHumidity/', views.handleHumidity, name='handleHumidity'),
     path('handleTemperature/', views.handleTemperature, name='handleTemperature'),
     path('yolobit_api', views.yolobit_api, name='yolobit_api'),
+    path('smart/mode/', views.updateMode, name='updateMode'),
+    path('smart/state/', views.updateState, name='updateState'),
 ]
