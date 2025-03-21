@@ -187,7 +187,7 @@ def getThreshold(request):
             "success": True,
             "data": {
                 "irrigation": {
-                    "mode": 0 if water_pump.manualMode else 1,  # 0 là thủ công, 1 là tự động
+                    "mode": 1 if water_pump.manualMode else 0,
                     "device_state": water_pump.state,  # state 0 là đang tắt, state 1 là đang bật
                     "auto_threshold": {
                         "temp": {
@@ -209,7 +209,7 @@ def getThreshold(request):
                     }
                 },
                 "ventilation": {
-                    "mode": 0 if mini_fan.manualMode else 1,  # 0 là thủ công, 1 là tự động
+                    "mode": 1 if water_pump.manualMode else 0,
                     "device_state": mini_fan.state,  # state 0 là đang tắt, state 1 là đang bật
                     "auto_threshold": {
                         "temp": {
