@@ -7,7 +7,11 @@ from Adafruit_IO import Client, MQTTClient
 from dotenv import load_dotenv
 import os, pytz, json, requests
 from datetime import datetime
+<<<<<<< HEAD
 from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor, Enviroment_log, Device_state
+=======
+from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor, Enviroment_log
+>>>>>>> 6a2fb59 (new-v1-commit)
 from django.utils import timezone
 from datetime import timedelta
 
@@ -49,6 +53,9 @@ def allow_cors(view_func):
 @allow_cors
 def getData(request):
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6a2fb59 (new-v1-commit)
     try:
         # Lấy tham số khoảng thời gian từ request
         range_minute = int(request.GET.get('range_minute', 60))  # Mặc định 60 phút nếu không có
@@ -107,12 +114,26 @@ def yolobit_api(request):
         )
         log_entry.save()
         
+<<<<<<< HEAD
         device_status = list(Device_state.objects.values())
+=======
+        # Lấy trạng thái thiết bị (fan và pump)
+        # Giả sử ta có một model DeviceState hay đang sử dụng Adafruit IO
+        pump_status = aio.data('bbc-manual-watering')[0].value 
+        fan_status = aio.data('bbc-manual-temperature')[0].value
+>>>>>>> 6a2fb59 (new-v1-commit)
         
         # Trả về kết quả
         return JsonResponse({
             "success": True,
+<<<<<<< HEAD
             "data": device_status
+=======
+            "devices": {
+                "pump": int(pump_status),
+                "fan": int(fan_status)
+            }
+>>>>>>> 6a2fb59 (new-v1-commit)
         })
         
     except Exception as e:
@@ -120,6 +141,7 @@ def yolobit_api(request):
             "success": False,
             "error": str(e)
         }, status=500)
+<<<<<<< HEAD
 
 def turnOnWatering(request):
     client.publish('bbc-manual-watering', 1)
@@ -142,6 +164,8 @@ def turnOnWatering(request):
         'soilMoistureHistory': [(x.value, format_datetime(x[1])) for x in soil_feeds[0:30]]
     }
     return JsonResponse(data)
+=======
+>>>>>>> 6a2fb59 (new-v1-commit)
 
 def turnOnWatering(request):
     client.publish('bbc-manual-watering', 1)
