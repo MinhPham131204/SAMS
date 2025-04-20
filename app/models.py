@@ -70,7 +70,16 @@ class VentilateDaily(models.Model):
 
 class IrrigateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
-    irrigatedTime = models.TimeField() 
+    startTime = models.TimeField(null=True) 
+    endTime = models.TimeField(null=True)
+
+    class Meta:
+        constraints = [
+            CheckConstraint(
+                check=Q(startTime__lt=F('endTime')),
+                name='check_start_time_lt_end_time'
+            )
+        ]
 
 class Enviroment_log(models.Model):
     timestamp = models.DateTimeField(primary_key=True, default=django_timezone.now)
