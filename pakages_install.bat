@@ -1,0 +1,1 @@
+pip install django djangorestframework mysqlclient django_apscheduler Adafruit_IO python-dotenv
