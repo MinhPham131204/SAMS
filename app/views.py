@@ -332,10 +332,22 @@ def ventilateDaily(request):
         return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})
-    
+ 
+def checkAutoModePump():
+    return 1 - Device_state.objects.filter(device_name="water_pump").first().manualMode
+
+def checkAutoModeFan():
+    return 1 - Device_state.objects.filter(device_name="mini_fan").first().manualMode
+
 @csrf_exempt
 @require_http_methods(['POST'])
 def handleHumidity(request):
+    if not checkAutoModePump() and not checkAutoModeFan():
+        return JsonResponse({
+            "success": False,
+            "error": "Bạn đang ở chế độ thủ, không thể thực hiện hành động này."
+        })
+    
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     humi = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerHumidity', 'upperHumidity')
@@ -355,10 +367,9 @@ def handleHumidity(request):
         # humidity in range
         else:
             if (Device_state.objects.filter(device_name="water_pump").values())[0]['state'] == 1:
-                requests.get('/turnOffWatering')
                 Device_state.objects.filter(device_name="water_pump").update(state=1) 
+
             elif (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
-                requests.get('/turnOffVentilate')
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)   
 
             return JsonResponse({'status': 'Độ ẩm ở mức cho phép'})
@@ -368,6 +379,12 @@ def handleHumidity(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def handleTemperature(request):
+    if not checkAutoModePump() and not checkAutoModeFan():
+        return JsonResponse({
+            "success": False,
+            "error": "Bạn đang ở chế độ thủ, không thể thực hiện hành động này."
+        })
+    
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     temp = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerTemp', 'upperTemp')
@@ -391,10 +408,9 @@ def handleTemperature(request):
         # temperature in range
         else:
             if (Device_state.objects.filter(device_name="water_pump").values())[0]['state'] == 1:
-                requests.get('/turnOffWatering')
                 Device_state.objects.filter(device_name="water_pump").update(state=1) 
+
             elif (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
-                requests.get('/turnOffVentilate')
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)  
             return JsonResponse({'status': 'Nhiệt độ ở mức cho phép'})
     else:
@@ -411,7 +427,7 @@ def updateMode(request):
             "success": True,
             'data': body["mode"]
         })
-    elif body["mode"] == "ventilation":
+    elif body["type"] == "ventilation":
         Device_state.objects.filter(device_name="mini_fan").update(manualMode=body["mode"])
         return JsonResponse({
             "success": True,
