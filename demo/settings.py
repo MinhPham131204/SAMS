@@ -83,10 +83,10 @@ WSGI_APPLICATION = 'demo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'yolo_farm',
+        'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_ADMIN_USERNAME'),
         'PASSWORD': os.getenv('DB_ADMIN_PASSWORD'),
-        'HOST': '103.75.183.157',
+        'HOST': os.getenv('DB_ADMIN_HOST'),
         'PORT': '3306',
         'OPTIONS': {'init_command': 'SET default_storage_engine=INNODB'},
     }
