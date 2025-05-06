@@ -25,18 +25,18 @@ const routes = [
     path: "/control-pannel",
     page: <ControlPanel/>
   },
-  // {
-  //   name: "Lên lịch và nhắc nhở",
-  //   icon: <CalendarDays />,
-  //   path: "/scheduler",
-  //   page: <CalendarPage/>
-  // },
-  // {
-  //   name: "Cài đặt hệ thống",
-  //   icon: <Settings />,
-  //   path: "/system",
-  //   page: <SystemSettings/>
-  // }
+  {
+     name: "Lên lịch và nhắc nhở",
+     icon: <CalendarDays />,
+     path: "/scheduler",
+     page: <CalendarPage/>
+   },
+   {
+   name: "Cài đặt hệ thống",
+    icon: <Settings />,
+    path: "/system",
+   page: <SystemSettings/>
+  }
 ];
 
 export default function App() {
