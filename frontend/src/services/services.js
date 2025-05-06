@@ -1,4 +1,4 @@
-const BASE_API_URL = "http://sams.akng.io.vn:8000";
+const BASE_API_URL = "http://127.0.0.1:8000/";
 const Services = {
   // Lấy dữ liệu môi trường trong khoảng thời gian
   getEnviromentData: async (range_minute) => {
@@ -82,6 +82,28 @@ const Services = {
   //     }, 300);
   //   });
   // },
+  // Thêm sự kiện tưới nước
+  addIrrigationEvent: async (eventData) => {
+    return await fetch(`${BASE_API_URL}/irrigate-schedule/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(eventData),
+    });
+  },
+
+  // Thêm sự kiện thông gió
+  addVentilationEvent: async (eventData) => {
+    return await fetch(`${BASE_API_URL}/ventilate-schedule/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(eventData),
+    });
+  },
+
 };
 
 export default Services;

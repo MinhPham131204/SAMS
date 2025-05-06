@@ -25,14 +25,14 @@ def format_datetime(dt_string):
 
 load_dotenv()
 
-AIO_USERNAME = os.getenv('AIO_USERNAME')
-AIO_KEY = os.getenv('AIO_KEY')
+# AIO_USERNAME = os.getenv('AIO_USERNAME')
+# AIO_KEY = os.getenv('AIO_KEY')
 
-client = MQTTClient(AIO_USERNAME , AIO_KEY)
-client.connect()
-client.loop_background()
+# client = MQTTClient(AIO_USERNAME , AIO_KEY)
+# client.connect()
+# client.loop_background()
 
-aio = Client(AIO_USERNAME, AIO_KEY)
+# aio = Client(AIO_USERNAME, AIO_KEY)
 
 def allow_cors(view_func):
     @wraps(view_func)
@@ -120,21 +120,21 @@ def yolobit_api(request):
             "error": str(e)
         }, status=500)
 
-def turnOnWatering(request):
-    client.publish('bbc-manual-watering', 1)
-    return JsonResponse({'status': 1})
+# def turnOnWatering(request):
+#     client.publish('bbc-manual-watering', 1)
+#     return JsonResponse({'status': 1})
 
-def turnOffWatering(request):
-    client.publish('bbc-manual-watering', 0)   
-    return JsonResponse({'status': 0})
+# def turnOffWatering(request):
+#     client.publish('bbc-manual-watering', 0)   
+#     return JsonResponse({'status': 0})
 
-def turnOnVentilate(request):
-    client.publish('bbc-manual-temperature', 1)
-    return JsonResponse({'status': 1})
+# def turnOnVentilate(request):
+#     client.publish('bbc-manual-temperature', 1)
+#     return JsonResponse({'status': 1})
 
-def turnOffVentilate(request):
-    client.publish('bbc-manual-temperature', 0)    
-    return JsonResponse({'status': 0})
+# def turnOffVentilate(request):
+#     client.publish('bbc-manual-temperature', 0)    
+#     return JsonResponse({'status': 0})
 
 @csrf_exempt
 @require_http_methods(['POST'])
@@ -282,7 +282,7 @@ def irrigateSchedule(request):
     else:
         sensor = Sensor.objects.filter(id=body["sensorID"]).first()
         if sensor:
-            schedule = Schedule(sensorID=sensor, irrigatedTime=body['irrigatedTime'], ventilatedTime="00:00:00")
+            schedule = Schedule(sensorID=sensor, irrigatedTime=body['irrigatedTime'])
             schedule.save()
             return JsonResponse({'status': 'success'})
         else:
@@ -301,7 +301,7 @@ def ventilateSchedule(request):
     else:
         sensor = Sensor.objects.filter(id=body["sensorID"]).first()
         if sensor:
-            schedule = Schedule(sensorID=sensor, ventilatedTime=body['ventilatedTime'], irrigatedTime="00:00:00")
+            schedule = Schedule(sensorID=sensor, ventilatedTime=body['ventilatedTime'])
             schedule.save()
             return JsonResponse({'status': 'success'})
         else:
@@ -332,33 +332,44 @@ def ventilateDaily(request):
         return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({"message": "Không tìm thấy sensor"})
-    
+ 
+def checkAutoModePump():
+    return 1 - Device_state.objects.filter(device_name="water_pump").first().manualMode
+
+def checkAutoModeFan():
+    return 1 - Device_state.objects.filter(device_name="mini_fan").first().manualMode
+
 @csrf_exempt
 @require_http_methods(['POST'])
 def handleHumidity(request):
+    if not checkAutoModePump() and not checkAutoModeFan():
+        return JsonResponse({
+            "success": False,
+            "error": "Bạn đang ở chế độ thủ, không thể thực hiện hành động này."
+        })
+    
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     humi = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerHumidity', 'upperHumidity')
     if humi:
         # humidity < lower threshold of humidity
         if body["humidity"] < humi[0][0]:
-            client.publish('bbc-manual-watering', 1)
+            # client.publish('bbc-manual-watering', 1)
             Device_state.objects.filter(device_name="water_pump").update(state=1)
             return JsonResponse({'status': 'Độ ẩm thấp hơn mức cho phép. Đang tưới nước'})
         
         # humidity > upper threshold of humidity
         elif body["humidity"] > humi[0][1]: 
-            client.publish('bbc-manual-temperature', 1)
+            # client.publish('bbc-manual-temperature', 1)
             Device_state.objects.filter(device_name="mini_fan").update(state=1)
             return JsonResponse({'status': 'Độ ẩm cao hơn mức cho phép. Đang thông gió'})
         
         # humidity in range
         else:
             if (Device_state.objects.filter(device_name="water_pump").values())[0]['state'] == 1:
-                requests.get('/turnOffWatering')
                 Device_state.objects.filter(device_name="water_pump").update(state=1) 
+
             elif (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
-                requests.get('/turnOffVentilate')
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)   
 
             return JsonResponse({'status': 'Độ ẩm ở mức cho phép'})
@@ -368,6 +379,12 @@ def handleHumidity(request):
 @csrf_exempt
 @require_http_methods(['POST'])
 def handleTemperature(request):
+    if not checkAutoModePump() and not checkAutoModeFan():
+        return JsonResponse({
+            "success": False,
+            "error": "Bạn đang ở chế độ thủ, không thể thực hiện hành động này."
+        })
+    
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
     temp = Threshold.objects.filter(sensorID=body["sensorID"]).values_list('lowerTemp', 'upperTemp')
@@ -375,26 +392,25 @@ def handleTemperature(request):
         # temperature < lower threshold of temperature
         if body["temperature"] < temp[0][0]:
             if (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
-                client.publish('bbc-manual-temperature', 0)
+                # client.publish('bbc-manual-temperature', 0)
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)
             return JsonResponse({'status': 'Nhiệt độ thấp hơn mức cho phép. Đã tắt quạt'})
         
         # temperature > upper threshold of temperature
         elif body["temperature"] > temp[0][1]:
-            client.publish('bbc-manual-temperature', 1)
+            # client.publish('bbc-manual-temperature', 1)
             Device_state.objects.filter(device_name="mini_fan").update(state=1)
 
-            client.publish('bbc-manual-watering', 0)
+            # client.publish('bbc-manual-watering', 0)
             Device_state.objects.filter(device_name="water_pump").update(state=1)
             return JsonResponse({'status': 'Nhiệt độ cao hơn mức cho phép. Đang thông gió và tưới nước'})
         
         # temperature in range
         else:
             if (Device_state.objects.filter(device_name="water_pump").values())[0]['state'] == 1:
-                requests.get('/turnOffWatering')
                 Device_state.objects.filter(device_name="water_pump").update(state=1) 
+
             elif (Device_state.objects.filter(device_name="mini_fan").values())[0]['state'] == 1:
-                requests.get('/turnOffVentilate')
                 Device_state.objects.filter(device_name="mini_fan").update(state=1)  
             return JsonResponse({'status': 'Nhiệt độ ở mức cho phép'})
     else:
@@ -411,7 +427,7 @@ def updateMode(request):
             "success": True,
             'data': body["mode"]
         })
-    elif body["mode"] == "ventilation":
+    elif body["type"] == "ventilation":
         Device_state.objects.filter(device_name="mini_fan").update(manualMode=body["mode"])
         return JsonResponse({
             "success": True,

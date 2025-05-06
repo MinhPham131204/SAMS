@@ -3,14 +3,13 @@ import { setCurrentDate, setSelectedDate, addEvent, deleteEvent } from "../reduc
 import { useState } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import Services from "../services/services"
 export default function CalendarPage() {
   const dispatch = useDispatch();
   const { currentDate, selectedDate, events } = useSelector((state) => state.calendar);
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
-  const [eventName, setEventName] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [eventType, setEventType] = useState("irrigation");
 
@@ -30,27 +29,71 @@ export default function CalendarPage() {
   };
 
   const handleAddEvent = () => {
-    if (!eventName.trim() || !eventTime.trim() || !selectedDate) {
+    if (!eventTime.trim() || !selectedDate) {
       toast.error("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
 
     const [hour, minute] = eventTime.split(":").map(Number);
+    const eventDateTime = new Date(`${selectedDate} ${hour+7}:${minute}:00`) //GMT +7
 
     dispatch(
       addEvent({
         date: selectedDate,
         hour,
         minute,
-        name: eventName,
         action_type: eventType,
       })
     );
+    console.log("test")
+    console.log(eventTime);
 
-    setEventName("");
-    setEventTime("");
-    setEventType("irrigation");
-    toast.success("Sự kiện đã được thêm!");
+    let bodyData;
+
+    if (eventType === "irrigation") {
+      // Body cho irrigation
+      bodyData = {
+        irrigatedTime: eventDateTime, // Gửi thời gian theo định dạng YYYY-MM-DD HH:MM:SS
+        sensorID: 1, // SensorID mặc định là 1
+         // Thêm thông tin cho irrigation nếu cần
+      };
+      Services.addIrrigationEvent(bodyData)
+        .then(response => {
+          console.log(response);
+          if (response.ok) {
+            toast.success("Sự kiện đã được thêm thành công!");
+          } else {
+            toast.error("Lỗi khi thêm sự kiện!");
+          }
+        })
+        .catch(error => {
+          console.error("Có lỗi xảy ra khi gọi API:", error);
+        });
+      setEventTime("");
+      setEventType("irrigation")
+    } else if (eventType === "ventilation") {
+      // Body cho ventilation
+      bodyData = {
+        ventilatedTime: eventDateTime, // Gửi thời gian theo định dạng YYYY-MM-DD HH:MM:SS
+        sensorID: 1, // SensorID mặc định là 1
+         // Thêm thông tin cho ventilation nếu cần
+      };
+      Services.addVentilationEvent(bodyData)
+        .then(response => {
+          if (response.ok) {
+            toast.success("Sự kiện đã được thêm thành công!");
+          } else {
+            toast.error("Lỗi khi thêm sự kiện!");
+          }
+        })
+        .catch(error => {
+          console.error("Có lỗi xảy ra khi gọi API:", error);
+        });
+        setEventTime("");
+        setEventType("irrigation")
+    }
+
+
   };
 
   const handleDeleteEvent = (id) => {
@@ -59,7 +102,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg ">
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">Lịch & Lên lịch</h2>
       </div>
@@ -90,7 +133,7 @@ export default function CalendarPage() {
               key={day}
               onClick={() => handleDateClick(day)}
               className={`h-16 p-2 border rounded cursor-pointer 
-                ${selectedDate === dateKey & toDateString === dateKey ? "bg-cyan-700 text-white"
+                ${selectedDate === dateKey && toDateString === dateKey ? "bg-cyan-700 text-white"
                   : selectedDate === dateKey ? "bg-blue-500 text-white"
                     : toDateString === dateKey ? "bg-green-500 text-white"
                       : "hover:bg-gray-300"}`}
@@ -107,13 +150,6 @@ export default function CalendarPage() {
         <div className="mt-6">
           <h3 className="text-lg font-semibold">Lên lịch cho: {selectedDate}</h3>
           <input
-            type="text"
-            placeholder="Nhập tên sự kiện..."
-            value={eventName}
-            onChange={(e) => setEventName(e.target.value)}
-            className="border p-2 rounded w-full mt-2"
-          />
-          <input
             type="time"
             value={eventTime}
             onChange={(e) => setEventTime(e.target.value)}
@@ -126,7 +162,6 @@ export default function CalendarPage() {
           >
             <option value="irrigation">💧 Tưới nước</option>
             <option value="ventilation">🌬️ Thông gió</option>
-            <option value="reminder">🔔 Nhắc nhở</option>
           </select>
           <button
             onClick={handleAddEvent}
@@ -139,7 +174,7 @@ export default function CalendarPage() {
               .filter(event => event.date === selectedDate)
               .map((event, index) => (
                 <li key={index} className="flex justify-between bg-gray-200 p-2 rounded mt-1">
-                  <span>{event.date} - {event.hour}:{event.minute} - {event.name} ({event.action_type}) {`--> ${event.status == 0 ? "waiting" : event.status == 1 ? "completed" : "fail"}`}</span>
+                  <span>{event.date} - {event.hour}:{event.minute} - {event.action_type} {`--> ${event.status == 0 ? "waiting" : event.status == 1 ? "completed" : "fail"}`}</span>
                   <button
                     onClick={() => handleDeleteEvent(event.id)}
                     className="text-red-500 font-bold"

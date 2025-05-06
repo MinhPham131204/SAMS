@@ -61,16 +61,26 @@ class Threshold(models.Model):
 
 class Schedule(models.Model):
     sensorID = models.OneToOneField(Sensor, on_delete=models.CASCADE, primary_key=True)
-    ventilatedTime = models.DateTimeField()
-    irrigatedTime = models.DateTimeField()
+    ventilatedTime = models.DateTimeField(null=True, blank=True)
+    irrigatedTime = models.DateTimeField(null=True, blank=True)
 
 class VentilateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
-    ventilatedTime = models.TimeField()
+    startTime = models.TimeField(null=True) 
+    endTime = models.TimeField(null=True)
 
 class IrrigateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
-    irrigatedTime = models.TimeField() 
+    startTime = models.TimeField(null=True) 
+    endTime = models.TimeField(null=True)
+
+    class Meta:
+        constraints = [
+            CheckConstraint(
+                check=Q(startTime__lt=F('endTime')),
+                name='check_start_time_lt_end_time'
+            )
+        ]
 
 class Enviroment_log(models.Model):
     timestamp = models.DateTimeField(primary_key=True, default=django_timezone.now)
