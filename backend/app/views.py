@@ -209,7 +209,7 @@ def getThreshold(request):
                     }
                 },
                 "ventilation": {
-                    "mode": 1 if water_pump.manualMode else 0,
+                    "mode": 1 if mini_fan.manualMode else 0,
                     "device_state": mini_fan.state,  # state 0 là đang tắt, state 1 là đang bật
                     "auto_threshold": {
                         "temp": {
@@ -446,7 +446,7 @@ def updateState(request):
     body = json.loads(body_unicode)
 
     if body["type"] == "irrigation":
-        if not Device_state.objects.filter(device_name="water_pump").first().manualMode: 
+        if Device_state.objects.filter(device_name="water_pump").first().manualMode: 
             return JsonResponse({
                 "success": False,
                 "error": "Bạn đang ở chế độ tự động, không thể thực hiện hành động này."
@@ -459,7 +459,8 @@ def updateState(request):
         })
     
     elif body["type"] == "ventilation":
-        if not Device_state.objects.filter(device_name="mini_fan").first().manualMode: 
+        if Device_state.objects.filter(device_name="mini_fan").first().manualMode: 
+            print(Device_state.objects.filter(device_name="mini_fan").first().manualMode)
             return JsonResponse({
                 "success": False,
                 "error": "Bạn đang ở chế độ tự động, không thể thực hiện hành động này."
@@ -475,3 +476,39 @@ def updateState(request):
             "success": False,
             "error": "Không tìm thấy chế độ"
         })
+@csrf_exempt
+@require_http_methods(['PUT'])
+def toggleDeviceMode(request):
+    try:
+        # Parse JSON body from request
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        
+        # Get device names and modes from the request body
+        device_name = body.get("device_name")
+        mode = body.get("mode")  # mode: 1 for manual, 0 for auto
+        
+        if not device_name or mode is None:
+            return JsonResponse({"error": "Thiếu thông tin thiết bị hoặc chế độ"}, status=400)
+        
+        # Validate that the device exists
+        device = Device_state.objects.filter(device_name=device_name).first()
+        if not device:
+            return JsonResponse({"error": f"Không tìm thấy thiết bị {device_name}"}, status=404)
+        
+        # Update the device mode
+        device.manualMode = mode
+        device.save()
+
+        # Return response based on the new mode
+        mode_str = "thủ công" if mode == 1 else "tự động"
+        return JsonResponse({
+            "success": True,
+            "message": f"Chế độ của {device_name} đã được chuyển sang chế độ {mode_str}."
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)

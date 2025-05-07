@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 const ControlPanel = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-
+ 
   useEffect(() => {
     fetchData();
   }, []);
@@ -17,8 +17,12 @@ const ControlPanel = () => {
       const res = await Services.getGeneralInfo();
       if (res.ok) {
         const result = await res.json();
+     
         if (result.success) {
+        
           setData(result.data);
+       
+         
         } else {
           toast.error("Lỗi khi lấy dữ liệu");
         }
@@ -48,16 +52,17 @@ const ControlPanel = () => {
   };
 
   const handleToggleDevice = async (type) => {
-    if (data[type].mode === 1) {
-      toast.error("Đang ở chế độ tự động, không thể thay đổi trạng thái!");
-      return;
-    }
-    const newState = data[type].device_state === 0 ? 1 : 0;
+
+    const newstate = data[type].device_state === false ? true : false;
+    console.log(data[type].device_state)
+    console.log(newstate)
     try {
-      const res = await Services.updateDeviceState(type, newState);
+      const res = await Services.updateDeviceState(type, newstate);
+ 
       if (res.ok) {
         toast.success("Cập nhật trạng thái thành công!");
-        setData((prev) => ({ ...prev, [type]: { ...prev[type], device_state: newState } }));
+        setData((prev) => ({ ...prev, [type]: { ...prev[type], device_state: newstate } }));
+        
       } else {
         const errorData = await res.json();
         toast.error(errorData.error || `Lỗi server: ${res.status}`);
@@ -82,7 +87,7 @@ const ControlPanel = () => {
   };
 
   if (loading) return <p className="text-center text-gray-500">Đang tải dữ liệu...</p>;
-
+ 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
       <ControlColumn
@@ -135,11 +140,12 @@ const ControlColumn = ({ title, type, data, onModeChange, onToggleDevice, onThre
         </div>
       </div>
 
-      {/* Hiển thị trạng thái thiết bị (Luôn hiện, không chỉnh sửa nếu Auto) */}
+     {/* Hiển thị trạng thái thiết bị (Luôn hiện, không chỉnh sửa nếu Auto) */}
       <div className="flex items-center justify-between">
         <span className="text-gray-700">Trạng thái thiết bị</span>
         <div className="flex justify-end items-center gap-5">
-          <span className={`text-gray-700 ${data.device_state === 0 && 'font-bold'}`}>Off</span>
+          <span className={`text-gray-700 ${!data.device_state && 'font-bold'}`}>Off</span>
+          
           <button
             onClick={() => {
               if (data.mode === 0) {
@@ -148,17 +154,22 @@ const ControlColumn = ({ title, type, data, onModeChange, onToggleDevice, onThre
                 toast.warn("Đang ở chế độ tự động, không thể thay đổi trạng thái!");
               }
             }}
-            disabled={data.mode === 1} // Vô hiệu hóa nút khi Auto
-            className={`w-16 h-8 rounded-full transition-colors ${data.device_state === 1 ? "bg-green-500" : "bg-gray-300"} relative ${data.mode === 1 && "opacity-50 cursor-not-allowed"}`}
+            disabled={data.mode === 1}
+            className={`w-16 h-8 rounded-full transition-colors 
+              ${data.device_state ? "bg-green-500" : "bg-gray-300"} 
+              relative 
+              ${data.mode === 1 && "opacity-50 cursor-not-allowed"}`}
           >
             <span
-              className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${data.device_state === 1 ? "translate-x-8" : ""
-                }`}
+              className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform 
+                ${data.device_state ? "translate-x-8" : ""}`}
             ></span>
           </button>
-          <span className={`text-gray-700 ${data.device_state === 1 && 'font-bold'}`}>On</span>
+          
+          <span className={`text-gray-700 ${data.device_state && 'font-bold'}`}>On</span>
         </div>
       </div>
+
 
       {/* Cài đặt Threshold (Chỉ hiện nếu chế độ là Tự động) */}
       {data.mode === 1 && (

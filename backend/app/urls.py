@@ -19,4 +19,6 @@ urlpatterns = [
     # path('smartIrrigate/', views.smartIrrigate, name='smartIrrigate'),
     # path('smartVentilate/', views.smartVentilate, name='smartVentilate'),
     path('yolobit_api', views.yolobit_api, name='yolobit_api'),
+    path('smart/mode/', views.updateMode, name='configMode'),
+    path('smart/state/', views.updateState, name='configState'),
 ]

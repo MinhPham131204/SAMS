@@ -13,7 +13,7 @@ const Services = {
   // Cập nhật chế độ (Thủ công / Tự động) của tưới tiêu hoặc thông gió
   updateMode: async (type, mode) => {
     return await fetch(`${BASE_API_URL}/smart/mode/`, {
-      method: "POST",
+      method: "PUT",
       redirect: "follow",
       body: JSON.stringify({ type, mode }),
     });
@@ -22,7 +22,7 @@ const Services = {
   // Bật / Tắt thiết bị tưới tiêu hoặc thông gió (chỉ hoạt động khi ở chế độ Thủ công)
   updateDeviceState: async (type, state) => {
     return await fetch(`${BASE_API_URL}/smart/state/`, {
-      method: "POST",
+      method: "PUT",
       redirect: "follow",
       body: JSON.stringify({ type, state }),
     });
@@ -30,10 +30,15 @@ const Services = {
 
   // Cập nhật ngưỡng tự động (threshold)
   updateThreshold: async (type, threshold) => {
+    const sensorID = 1;
+    const temp = threshold["temp"];
+    const hum = threshold["hum"];
+    const lig = threshold["lig"];
+    const soil = threshold["soil"];
     return await fetch(`${BASE_API_URL}/smart/threshold/`, {
-      method: "GET",
+      method: "PUT",
       redirect: "follow",
-      body: JSON.stringify({ type, threshold }),
+      body: JSON.stringify({ sensorID, temp, hum, lig, soil }),
     });
   },
   // getGeneralInfo: async () => {
