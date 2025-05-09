@@ -62,7 +62,7 @@ const Services = {
 
   // Thêm sự kiện thông gió
   addVentilationEvent: async (eventData) => {
-    return await fetch(`${BASE_API_URL}/ventilate-schedule/`, {
+    return await fetch(`${BASE_API_URL}/ventilate-schedule`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

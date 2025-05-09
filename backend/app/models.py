@@ -63,6 +63,8 @@ class Schedule(models.Model):
     sensorID = models.OneToOneField(Sensor, on_delete=models.CASCADE, primary_key=True)
     ventilatedTime = models.DateTimeField(null=True, blank=True)
     irrigatedTime = models.DateTimeField(null=True, blank=True)
+    irrigatedDuration = models.IntegerField()
+    ventilatedDuration = models.IntegerField()
 
 class VentilateDaily(models.Model):
     sensorID = models.ForeignKey(Sensor, on_delete=models.CASCADE, verbose_name='sensorID')
