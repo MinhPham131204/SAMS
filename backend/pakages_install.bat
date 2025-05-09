@@ -1,1 +1,0 @@
-pip install django djangorestframework mysqlclient django_apscheduler Adafruit_IO python-dotenv torch==2.7.0 torchvision==0.22.0

@@ -6,13 +6,14 @@ import os
 import uuid
 from io import BytesIO
 from PIL import Image
-from ai_model.models import Model
+# from ai_model.models import Model
 
 
 @csrf_exempt
 @require_http_methods(['POST'])
 def predict(request):
     try:
+        return JsonResponse({'error': "Please use local backend for this features"}, status=400)
         # Kiểm tra xem body request có dữ liệu không
         if not request.body:
             return JsonResponse({'error': 'No image data provided'}, status=400)

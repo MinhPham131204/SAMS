@@ -56,4 +56,4 @@ class FasterRCNN_Resnet50_FPN_nonpretrain_epoch19():
         return results
 
 
-Model = FasterRCNN_Resnet50_FPN_nonpretrain_epoch19()
+# Model = FasterRCNN_Resnet50_FPN_nonpretrain_epoch19()
