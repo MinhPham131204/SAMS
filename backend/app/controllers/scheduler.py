@@ -22,6 +22,9 @@ def irrigateSchedule(request):
         Schedule.objects.filter(sensorID=body["sensorID"]).update(
             irrigatedTime=body["irrigatedTime"],
         )
+        Schedule.objects.filter(sensorID=body["sensorID"]).update(
+            irrigatedDuration=body["irrigatedDuration"],
+        )
         return JsonResponse({'status': 'success'})
     else:
         sensor = Sensor.objects.filter(id=body["sensorID"]).first()
@@ -40,6 +43,9 @@ def ventilateSchedule(request):
     if Schedule.objects.filter(sensorID=body["sensorID"]).values():
         Schedule.objects.filter(sensorID=body["sensorID"]).update(
             ventilatedTime=body["ventilatedTime"],
+        )
+        Schedule.objects.filter(sensorID=body["sensorID"]).update(
+            ventilatedDuration=body["ventilatedDuration"],
         )
         return JsonResponse({'status': 'success'})
     else:

@@ -12,7 +12,7 @@ export default function CalendarPage() {
 
   const [eventTime, setEventTime] = useState("");
   const [eventType, setEventType] = useState("irrigation");
-
+  const [eventDuration, setEventDuration] = useState("");
   const toDateString = new Date().toDateString();
 
   const handlePrevMonth = () => {
@@ -35,28 +35,31 @@ export default function CalendarPage() {
     }
 
     const [hour, minute] = eventTime.split(":").map(Number);
-    const eventDateTime = new Date(`${selectedDate} ${hour+7}:${minute}:00`) //GMT +7
+    const eventDateTime = new Date(selectedDate);
+    eventDateTime.setHours(hour, minute, 0, 0);
 
     dispatch(
       addEvent({
         date: selectedDate,
         hour,
         minute,
+        duration: eventDuration,
         action_type: eventType,
       })
     );
-    console.log("test")
-    console.log(eventTime);
+  
 
     let bodyData;
 
     if (eventType === "irrigation") {
       // Body cho irrigation
       bodyData = {
+        irrigatedDuration: eventDuration,
         irrigatedTime: eventDateTime, // Gửi thời gian theo định dạng YYYY-MM-DD HH:MM:SS
         sensorID: 1, // SensorID mặc định là 1
          // Thêm thông tin cho irrigation nếu cần
       };
+      console.log(bodyData)
       Services.addIrrigationEvent(bodyData)
         .then(response => {
           console.log(response);
@@ -70,14 +73,17 @@ export default function CalendarPage() {
           console.error("Có lỗi xảy ra khi gọi API:", error);
         });
       setEventTime("");
-      setEventType("irrigation")
+      setEventType("irrigation");
+      setEventDuration("");
     } else if (eventType === "ventilation") {
       // Body cho ventilation
       bodyData = {
+        ventilatedDuration: eventDuration,
         ventilatedTime: eventDateTime, // Gửi thời gian theo định dạng YYYY-MM-DD HH:MM:SS
         sensorID: 1, // SensorID mặc định là 1
          // Thêm thông tin cho ventilation nếu cần
       };
+      console.log(bodyData)
       Services.addVentilationEvent(bodyData)
         .then(response => {
           if (response.ok) {
@@ -90,7 +96,8 @@ export default function CalendarPage() {
           console.error("Có lỗi xảy ra khi gọi API:", error);
         });
         setEventTime("");
-        setEventType("irrigation")
+        setEventType("irrigation");
+        setEventDuration("");
     }
 
 
@@ -153,6 +160,13 @@ export default function CalendarPage() {
             type="time"
             value={eventTime}
             onChange={(e) => setEventTime(e.target.value)}
+            className="border p-2 rounded w-full mt-2"
+          />
+          <input
+            type="number"
+            value={eventDuration}
+            onChange={(e) => setEventDuration(e.target.value)}
+            placeholder="Thời lượng (phút)"
             className="border p-2 rounded w-full mt-2"
           />
           <select
