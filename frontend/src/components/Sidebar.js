@@ -42,7 +42,7 @@ export default function Sidebar(props) {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-gray-900 text-white p-2 ${expanded ? "w-64" : "w-16"}`}
+      className={`fixed z-10 top-0 left-0 h-full bg-gray-900 text-white p-2 ${expanded ? "w-64" : "w-16"}`}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
