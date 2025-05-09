@@ -1,0 +1,9 @@
+install
+django
+djangorestframework
+mysqlclient
+django_apscheduler
+Adafruit_IO
+python-dotenv
+django-cors-headers
+pytz

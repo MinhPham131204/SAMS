@@ -1,24 +1,25 @@
 from django.urls import path
 from . import views
+# from controllers import disease_detection
+from .controllers import authentication, enviroment, control, schedulter
 
 urlpatterns = [
-    path('getData/', views.getData, name='getData'),
-    # path('manualWatering/', views.turnOnWatering, name='manualWatering'),
-    # path('turnOffWatering/', views.turnOffWatering, name='turnOffWatering'),
-    # path('manualVentilate/', views.turnOnVentilate, name='manualVentilate'),
-    # path('turnOffVentilate/', views.turnOffVentilate, name='turnOffVentilate'),
-    path('login/', views.login, name='login'),
-    path('signup/', views.signup, name='signup'),
-    path('smart/general/', views.getThreshold, name='threshold'),
-    path('smart/threshold/', views.config, name='configThreshold'),
-    path('schedule/<str:id>/', views.getSchedule, name='schedule'),
-    path('irrigate-schedule/', views.irrigateSchedule, name='irrigateSchedule'),
-    path('ventilate-schedule/', views.ventilateSchedule, name='ventilateSchedule'),
-    path('irrigateDaily/', views.irrigateDaily, name='irrigateDaily'),
-    path('ventilateDaily/', views.ventilateDaily, name='ventilateDaily'),
-    # path('smartIrrigate/', views.smartIrrigate, name='smartIrrigate'),
-    # path('smartVentilate/', views.smartVentilate, name='smartVentilate'),
-    path('yolobit_api', views.yolobit_api, name='yolobit_api'),
-    path('smart/mode/', views.updateMode, name='configMode'),
-    path('smart/state/', views.updateState, name='configState'),
+    path('authentication/login', authentication.login, name='login'),
+    path('authentication/signup', authentication.signup, name='signup'),
+
+    path('enviroment/get', enviroment.get, name='enviroment_get'),
+    path('enviroment/update', enviroment.update, name='enviroment_update'),
+
+    path('control/get', control.get, name='control_get'),
+    path('control/mode/update', control.updateMode, name='control_mode_update'),
+    path('control/device_state/update', control.updateDeviceState, name='control_device_state_update'),
+    path('control/threshold/update', control.updateThreshold, name='control_threshold_update'),
+
+    path('schedule/<str:id>', schedulter.getSchedule, name='schedule'),
+    path('irrigate-schedule', schedulter.irrigateSchedule, name='irrigateSchedule'),
+    path('ventilate-schedule', schedulter.ventilateSchedule, name='ventilateSchedule'),
+    path('irrigateDaily', schedulter.irrigateDaily, name='irrigateDaily'),
+    path('ventilateDaily', schedulter.ventilateDaily, name='ventilateDaily'),
+
+    # path('disease-detection', views.diseaseDetection, name='diseaseDetection'),
 ]

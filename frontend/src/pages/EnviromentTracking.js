@@ -42,7 +42,6 @@ export default function EnviromentTracking() {
   }, [rangeMinute]); // 🔥 Thêm rangeMinute vào đây để cập nhật khi thay đổi
 
 
-
   const Chart = ({ title, data, dataKey, unit, lineColor, icon }) => (
     <div className="bg-white shadow-lg rounded-lg p-4">
       <div className="text-2xl flex items-center justify-start ml-8">

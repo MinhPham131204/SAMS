@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
-import { ThermometerSun, CalendarDays, Droplets, Settings } from "lucide-react";
+import { ThermometerSun, CalendarDays, Droplets, Settings, Leaf } from "lucide-react";
 import EnviromentTracking from "./pages/EnviromentTracking";
 import ControlPanel from "./pages/ControlPanel";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -10,6 +10,7 @@ import { Provider } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import SystemSettings from "./pages/SystemSettings";
 import CalendarPage from "./pages/CalendarPage";
+import DiseasesDetection from "./pages/DiseasesDetection";
 
 
 const routes = [
@@ -36,7 +37,13 @@ const routes = [
     icon: <Settings />,
     path: "/system",
    page: <SystemSettings/>
-  }
+  },
+  {
+   name: "AI - Phát hiện bệnh lá lúa",
+    icon: <Leaf />,
+    path: "/diseases-detection",
+   page: <DiseasesDetection/>
+  },
 ];
 
 export default function App() {
