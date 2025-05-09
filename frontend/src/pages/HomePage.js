@@ -1,8 +1,8 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import farmImage from "./image/farm.png";
+import {Home} from 'lucide-react'
 
 export default function HomePage() {
   const auth = useSelector((state) => state.auth);
@@ -30,7 +30,7 @@ export default function HomePage() {
 
         {/* Avatar or Login Button */}
         {auth.isAuthenticated ? (
-          <FaUserCircle className="text-3xl text-green-800" />
+          <Home className="text-3xl text-green-800" />
         ) : (
           <button
             className="bg-green-200 text-green-900 px-4 py-2 rounded-full hover:bg-green-300"
