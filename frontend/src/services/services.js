@@ -70,6 +70,17 @@ const Services = {
       body: JSON.stringify(eventData),
     });
   },
+
+  // Dự đoán bệnh lá lúa
+  predictRiceLeafDisease: async (image) => {
+    return await fetch(`${BASE_API_URL}/disease/predict`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "image/jpeg",
+      },
+      body: image,
+    });
+  },
 };
 
 export default Services;

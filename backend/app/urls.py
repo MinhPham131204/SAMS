@@ -1,7 +1,5 @@
 from django.urls import path
-from . import views
-# from controllers import disease_detection
-from .controllers import authentication, enviroment, control, schedulter
+from .controllers import authentication, enviroment, control, scheduler, disease, others
 
 urlpatterns = [
     path('authentication/login', authentication.login, name='login'),
@@ -15,11 +13,11 @@ urlpatterns = [
     path('control/device_state/update', control.updateDeviceState, name='control_device_state_update'),
     path('control/threshold/update', control.updateThreshold, name='control_threshold_update'),
 
-    path('schedule/<str:id>', schedulter.getSchedule, name='schedule'),
-    path('irrigate-schedule', schedulter.irrigateSchedule, name='irrigateSchedule'),
-    path('ventilate-schedule', schedulter.ventilateSchedule, name='ventilateSchedule'),
-    path('irrigateDaily', schedulter.irrigateDaily, name='irrigateDaily'),
-    path('ventilateDaily', schedulter.ventilateDaily, name='ventilateDaily'),
+    path('schedule/<str:id>', scheduler.getSchedule, name='schedule'),
+    path('irrigate-schedule', scheduler.irrigateSchedule, name='irrigateSchedule'),
+    path('ventilate-schedule', scheduler.ventilateSchedule, name='ventilateSchedule'),
+    path('irrigateDaily', scheduler.irrigateDaily, name='irrigateDaily'),
+    path('ventilateDaily', scheduler.ventilateDaily, name='ventilateDaily'),
 
-    # path('disease-detection', views.diseaseDetection, name='diseaseDetection'),
+    path('disease/predict', disease.predict, name='disease_predict'),
 ]

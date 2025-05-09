@@ -7,3 +7,4 @@ Adafruit_IO
 python-dotenv
 django-cors-headers
 pytz
+PIL

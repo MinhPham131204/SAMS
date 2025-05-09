@@ -1,13 +1,9 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from django.forms.models import model_to_dict
 from dotenv import load_dotenv
-import pytz, json
-from datetime import datetime
-from .models import User, Threshold, Schedule, IrrigateDaily, VentilateDaily, Sensor, Enviroment_log, Device_state
-from django.utils import timezone
-from datetime import timedelta
+import json
+from ..models import Threshold, Device_state
 
 load_dotenv()
 
