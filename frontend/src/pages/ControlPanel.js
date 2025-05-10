@@ -122,7 +122,7 @@ const ControlColumn = ({ title, type, data, onModeChange, onToggleDevice, onThre
       <h2 className="text-lg font-semibold mb-4">{title}</h2>
 
       {/* Nút Toggle Chế Độ */}
-      <div className="flex items-center justify-between mb-4">
+      {/* <div className="flex items-center justify-between mb-4">
         <span className="text-gray-700">Chế độ</span>
         <div className="flex justify-end items-center gap-5">
           <span className={`text-gray-700 ${data.mode === 0 && 'font-bold'}`}>Thủ công</span>
@@ -138,7 +138,7 @@ const ControlColumn = ({ title, type, data, onModeChange, onToggleDevice, onThre
           </button>
           <span className={`text-gray-700 ${data.mode === 1 && 'font-bold'}`}>Tự động</span>
         </div>
-      </div>
+      </div> */}
 
      {/* Hiển thị trạng thái thiết bị (Luôn hiện, không chỉnh sửa nếu Auto) */}
       <div className="flex items-center justify-between">

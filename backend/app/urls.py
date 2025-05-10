@@ -19,5 +19,5 @@ urlpatterns = [
     path('irrigateDaily', scheduler.irrigateDaily, name='irrigateDaily'),
     path('ventilateDaily', scheduler.ventilateDaily, name='ventilateDaily'),
 
-    # path('disease/predict', disease.predict, name='disease_predict'),
+    path('disease/predict', disease.predict, name='disease_predict'),
 ]

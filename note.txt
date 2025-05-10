@@ -1,0 +1,9 @@
+Yolobit:
+    https://fw.ohstem.vn/
+    https://app.ohstem.vn/
+
+Libraries:
+    HTTP
+    AIOT KIT
+    PLANT BIT v2
+    HOME BIT v3

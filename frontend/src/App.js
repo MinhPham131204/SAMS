@@ -38,12 +38,12 @@ const routes = [
      path: "/scheduler",
      page: <CalendarPage/>
    },
-   {
-   name: "Cài đặt hệ thống",
-    icon: <Settings />,
-    path: "/system",
-   page: <SystemSettings/>
-  },
+  //  {
+  //  name: "Cài đặt hệ thống",
+  //   icon: <Settings />,
+  //   path: "/system",
+  //  page: <SystemSettings/>
+  // },
   {
    name: "AI - Phát hiện bệnh lá lúa",
     icon: <Leaf />,
